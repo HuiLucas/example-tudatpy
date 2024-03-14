@@ -96,7 +96,7 @@ spice.load_standard_kernels()
 satellite = "Delfi-C3"                              # Satellite name
 satellite_norad_cat_id = 32789                      # NORAD catelog ID for TLE
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
-propagation_duration = 7                            # How long to propagate for [days]
+propagation_duration = 100                          # How long to propagate for [days]
 
 satellite_mass = 2.2                                # Mass of satellite [kg]
 reference_area = (4*0.3*0.1+2*0.1*0.1)/4            # Average projection area of a 3U CubeSat [m²]
@@ -104,7 +104,7 @@ drag_coefficient = 1.2                              # Drag coefficient [-]
 reference_area_radiation = (4*0.3*0.1+2*0.1*0.1)/4  # Average projection area of a 3U CubeSat [m²]
 radiation_pressure_coefficient = 1.2                # Radiation pressure coefficient [-]
 
-fixed_step_size = 10.0                             # Step size for integrator
+fixed_step_size = 120.0                             # Step size for integrator
 #####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
@@ -251,4 +251,4 @@ plt.ylabel('Altitude [km]')
 plt.xlim([min(time), max(time)])
 plt.grid()
 plt.tight_layout()
-plt.savefig(f"Plots/{satellite} altitude over time - Stepsize={int(fixed_step_size)}")
+plt.savefig(f"Plots/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
