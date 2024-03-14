@@ -92,7 +92,7 @@ spice.load_standard_kernels()
 #PQ_norad_cat_id = 51074
 #PQ_launchdate = "2022-01-13--2022-01-13"
 
-# SETUP VARIABLES
+##### SETUP VARIABLES #####
 satellite = "Delfi-C3"                              # Satellite name
 satellite_norad_cat_id = 32789                      # NORAD catelog ID for TLE
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
@@ -105,7 +105,7 @@ reference_area_radiation = (4*0.3*0.1+2*0.1*0.1)/4  # Average projection area of
 radiation_pressure_coefficient = 1.2                # Radiation pressure coefficient [-]
 
 fixed_step_size = 120.0                             # Step size for integrator
-
+#####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
 line1, line2, line1split, line2split = get_tle(satellite_norad_cat_id, tle_date)
