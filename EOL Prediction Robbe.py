@@ -85,16 +85,16 @@ def get_tle(norad_cat_id, date):
 spice.load_standard_kernels()
 
 # Useful variables
-C3_norad_cat_id = 32789
-C3_launchdate = "2008-04-28--2008-04-29"
-N3XT_norad_cat_id = 39428
-N3XT_launchdate = "2013-11-21--2013-11-22"
-PQ_norad_cat_id = 51074
-PQ_launchdate = "2022-01-13--2022-01-13"
+#C3_norad_cat_id = 32789
+#C3_launchdate = "2008-04-28--2008-04-29"
+#N3XT_norad_cat_id = 39428
+#N3XT_launchdate = "2013-11-21--2013-11-22"
+#PQ_norad_cat_id = 51074
+#PQ_launchdate = "2022-01-13--2022-01-13"
 
 # SETUP VARIABLES
 satellite = "Delfi-C3"                              # Satellite name
-satellite_norad_cat_id = C3_norad_cat_id            # NORAD catelog ID for TLE
+satellite_norad_cat_id = 32789                      # NORAD catelog ID for TLE
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
 propagation_duration = 7                            # How long to propagate for [days]
 
@@ -106,8 +106,13 @@ radiation_pressure_coefficient = 1.2                # Radiation pressure coeffic
 
 fixed_step_size = 120.0                             # Step size for integrator
 
+
 # Get TLE in two lines
 line1, line2, line1split, line2split = get_tle(satellite_norad_cat_id, tle_date)
+line1 = line1.replace("\r","")
+line2 = line2.replace("\r","")
+
+# Get starting date and end dates for propagation
 Epoch_Year = line1split[3][:2]
 Epoch_Day = line1split[3][2:]
 if int(Epoch_Year) < 30:
@@ -119,8 +124,6 @@ epoch_day = float(Epoch_Day)  # Convert to float to handle fractional days
 date1 = start_of_year + timedelta(days=epoch_day - 1) # Subtract 1 because the epoch day is 1-indexed, but timedelta days are 0-indexed
 date2 = date1 + timedelta(days=propagation_duration - 1)
 
-print(line1)
-print(line2)
 # Set simulation start and end epochs
 simulation_start_epoch = datetime_to_tudat(date1).epoch()
 simulation_end_epoch   = datetime_to_tudat(date2).epoch()
