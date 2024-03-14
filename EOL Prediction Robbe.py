@@ -104,7 +104,7 @@ drag_coefficient = 1.2                              # Drag coefficient [-]
 reference_area_radiation = (4*0.3*0.1+2*0.1*0.1)/4  # Average projection area of a 3U CubeSat [m²]
 radiation_pressure_coefficient = 1.2                # Radiation pressure coefficient [-]
 
-fixed_step_size = 120.0                             # Step size for integrator
+fixed_step_size = 10.0                             # Step size for integrator
 #####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
@@ -241,7 +241,7 @@ dep_vars = dynamics_simulator.dependent_variable_history
 dep_vars_array = result2array(dep_vars)
 
 # Plot altitude as function of time
-time = dep_vars_array[:,0] / (3600 * 24) #In days
+time = (dep_vars_array[:,0] - datetime_to_tudat(date1).epoch()) / (3600 * 24) #In days
 altitude = dep_vars_array[:, 1] / 1000
 plt.figure(figsize=(9, 5))
 plt.title(f"Altitude of {satellite} over the course of propagation. step size = {fixed_step_size}")
