@@ -86,17 +86,17 @@ spice.load_standard_kernels()
 
 # Useful variables
 #C3_norad_cat_id = 32789
-#C3_launchdate = "2008-04-28--2008-04-29"
+#C3_launchdate = 2008-04-28
 #N3XT_norad_cat_id = 39428
-#N3XT_launchdate = "2013-11-21--2013-11-22"
+#N3XT_launchdate = 2013-11-21
 #PQ_norad_cat_id = 51074
-#PQ_launchdate = "2022-01-13--2022-01-13"
+#PQ_launchdate = 2022-01-13
 
 ##### SETUP VARIABLES #####
 satellite = "Delfi-C3"                              # Satellite name
 satellite_norad_cat_id = 32789                      # NORAD catelog ID for TLE
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
-propagation_duration = 100                          # How long to propagate for [days]
+propagation_duration = 10                          # How long to propagate for [days]
 
 satellite_mass = 2.2                                # Mass of satellite [kg]
 reference_area = (4*0.3*0.1+2*0.1*0.1)/4            # Average projection area of a 3U CubeSat [m²]
@@ -104,7 +104,7 @@ drag_coefficient = 1.2                              # Drag coefficient [-]
 reference_area_radiation = (4*0.3*0.1+2*0.1*0.1)/4  # Average projection area of a 3U CubeSat [m²]
 radiation_pressure_coefficient = 1.2                # Radiation pressure coefficient [-]
 
-fixed_step_size = 400.0                             # Step size for integrator
+fixed_step_size = 10.0                             # Step size for integrator
 #####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
@@ -212,14 +212,16 @@ dependent_variables_to_save = [
 ]
 
 # Create termination settings
-termination_condition = propagation_setup.propagator.time_termination(simulation_end_epoch)
+termination_time = propagation_setup.propagator.time_termination(simulation_end_epoch)
+termination_altitude = propagation_setup.propagator.dependent_variable_termination(propagation_setup.dependent_variable.altitude(satellite, "Earth"), 100E+3, True) #Number is altitude to stop propagating at [m]
+hybrid_termination_condition = propagation_setup.propagator.hybrid_termination([termination_time, termination_altitude], True)
 
 # Create numerical integrator settings
-#integrator_settings = propagation_setup.integrator.runge_kutta_4(fixed_step_size)
-integrator_settings = propagation_setup.integrator.bulirsch_stoer_variable_step(initial_time_step=fixed_step_size,extrapolation_sequence = propagation_setup.integrator.deufelhard_sequence, maximum_number_of_steps=7, 
-                                                                                step_size_control_settings =propagation_setup.integrator.step_size_control_elementwise_scalar_tolerance(1.0E-10, 1.0E-10, minimum_factor_increase=0.05),
-                                                                                step_size_validation_settings =propagation_setup.integrator.step_size_validation(0.1, 10000.0),
-                                                                                assess_termination_on_minor_steps = False)
+integrator_settings = propagation_setup.integrator.runge_kutta_4(fixed_step_size)
+#integrator_settings = propagation_setup.integrator.bulirsch_stoer_variable_step(initial_time_step=fixed_step_size,extrapolation_sequence = propagation_setup.integrator.deufelhard_sequence, maximum_number_of_steps=7, 
+#                                                                                step_size_control_settings =propagation_setup.integrator.step_size_control_elementwise_scalar_tolerance(1.0E-10, 1.0E-10, minimum_factor_increase=0.05),
+#                                                                                step_size_validation_settings =propagation_setup.integrator.step_size_validation(0.1, 10000.0),
+#                                                                                assess_termination_on_minor_steps = False)
 
 # Create propagation settings
 propagator_settings = propagation_setup.propagator.translational(
@@ -229,7 +231,7 @@ propagator_settings = propagation_setup.propagator.translational(
     initial_state,
     simulation_start_epoch,
     integrator_settings,
-    termination_condition,
+    hybrid_termination_condition,
     output_variables=dependent_variables_to_save
 )
 
@@ -255,4 +257,4 @@ plt.ylabel('Altitude [km]')
 plt.xlim([min(time), max(time)])
 plt.grid()
 plt.tight_layout()
-plt.savefig(f"Plots_BS/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
+plt.savefig(f"Plots_RK4_prediction/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
