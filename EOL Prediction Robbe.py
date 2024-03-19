@@ -104,7 +104,7 @@ drag_coefficient = 1.2                              # Drag coefficient [-]
 reference_area_radiation = (4*0.3*0.1+2*0.1*0.1)/4  # Average projection area of a 3U CubeSat [m²]
 radiation_pressure_coefficient = 1.2                # Radiation pressure coefficient [-]
 
-fixed_step_size = 120.0                             # Step size for integrator
+fixed_step_size = 110.0                             # Step size for integrator
 #####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
