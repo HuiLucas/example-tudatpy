@@ -96,15 +96,15 @@ spice.load_standard_kernels()
 satellite = "Delfi-C3"                              # Satellite name
 satellite_norad_cat_id = 32789                      # NORAD catelog ID for TLE
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
-propagation_duration = 10                          # How long to propagate for [days]
+propagation_duration = 900                          # How long to propagate for [days]
 
 satellite_mass = 2.2                                # Mass of satellite [kg]
-reference_area = (4*0.3*0.1+2*0.1*0.1)/4            # Average projection area of a 3U CubeSat [m²]
-drag_coefficient = 1.2                              # Drag coefficient [-]
-reference_area_radiation = (4*0.3*0.1+2*0.1*0.1)/4  # Average projection area of a 3U CubeSat [m²]
-radiation_pressure_coefficient = 1.2                # Radiation pressure coefficient [-]
+reference_area = 0.0746                             # Projection area of a 3U CubeSat [m²]
+drag_coefficient = 2.2                              # Drag coefficient [-]
+reference_area_radiation = 0.0746                   # Projection area of a 3U CubeSat [m²]
+radiation_pressure_coefficient = 2.2                # Radiation pressure coefficient [-]
 
-fixed_step_size = 10.0                             # Step size for integrator
+fixed_step_size = 30.0                             # Step size for integrator
 #####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
@@ -123,6 +123,8 @@ start_of_year = datetime(epoch_year, 1, 1)  # January 1 of the epoch year
 epoch_day = float(Epoch_Day)  # Convert to float to handle fractional days
 date1 = start_of_year + timedelta(days=epoch_day - 1) # Subtract 1 because the epoch day is 1-indexed, but timedelta days are 0-indexed
 date2 = date1 + timedelta(days=propagation_duration - 1)
+
+print(f"Propagation starting date: {date1}")
 
 # Set simulation start and end epochs
 simulation_start_epoch = datetime_to_tudat(date1).epoch()
@@ -208,7 +210,7 @@ initial_state = ephemeris.cartesian_state( simulation_start_epoch )
 
 # Define list of dependent variables to save
 dependent_variables_to_save = [
-    propagation_setup.dependent_variable.altitude(satellite, "Earth"),
+    propagation_setup.dependent_variable.altitude(satellite, "Earth")
 ]
 
 # Create termination settings
@@ -248,6 +250,7 @@ dep_vars_array = result2array(dep_vars)
 
 # Plot altitude as function of time
 time = (dep_vars_array[:,0] - datetime_to_tudat(date1).epoch()) / (3600 * 24) #In days
+print(f"Final remaining lifetime estimate: {time[-1]} days.")
 altitude = dep_vars_array[:, 1] / 1000
 plt.figure(figsize=(9, 5))
 plt.title(f"Altitude of {satellite} over the course of propagation. step size = {fixed_step_size}")
