@@ -104,7 +104,7 @@ drag_coefficient = 1.2                              # Drag coefficient [-]
 reference_area_radiation = (4*0.3*0.1+2*0.1*0.1)/4  # Average projection area of a 3U CubeSat [m²]
 radiation_pressure_coefficient = 1.2                # Radiation pressure coefficient [-]
 
-fixed_step_size = 110.0                             # Step size for integrator
+fixed_step_size = 400.0                             # Step size for integrator
 #####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
@@ -215,7 +215,11 @@ dependent_variables_to_save = [
 termination_condition = propagation_setup.propagator.time_termination(simulation_end_epoch)
 
 # Create numerical integrator settings
-integrator_settings = propagation_setup.integrator.runge_kutta_4(fixed_step_size)
+#integrator_settings = propagation_setup.integrator.runge_kutta_4(fixed_step_size)
+integrator_settings = propagation_setup.integrator.bulirsch_stoer_variable_step(initial_time_step=fixed_step_size,extrapolation_sequence = propagation_setup.integrator.deufelhard_sequence, maximum_number_of_steps=7, 
+                                                                                step_size_control_settings =propagation_setup.integrator.step_size_control_elementwise_scalar_tolerance(1.0E-10, 1.0E-10, minimum_factor_increase=0.05),
+                                                                                step_size_validation_settings =propagation_setup.integrator.step_size_validation(0.1, 10000.0),
+                                                                                assess_termination_on_minor_steps = False)
 
 # Create propagation settings
 propagator_settings = propagation_setup.propagator.translational(
@@ -251,4 +255,4 @@ plt.ylabel('Altitude [km]')
 plt.xlim([min(time), max(time)])
 plt.grid()
 plt.tight_layout()
-plt.savefig(f"Plots/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
+plt.savefig(f"Plots_BS/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
