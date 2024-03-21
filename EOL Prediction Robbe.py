@@ -13,7 +13,7 @@ from tudatpy.numerical_simulation import environment_setup, propagation_setup
 from tudatpy.astro import element_conversion
 from tudatpy import constants
 from tudatpy.util import result2array
-from tudatpy.astro.time_conversion import DateTime, datetime_to_tudat
+from tudatpy.astro.time_conversion import DateTime, datetime_to_tudat, date_time_from_epoch, datetime_to_python
 
 # Load modules for getting TLE
 import requests
@@ -73,7 +73,7 @@ def get_tle(norad_cat_id, date):
             elif line.startswith('2 '):
                 line2split = line.split(' ')
 
-        for line in lines:
+        for line in lines[:2]:
             if line.startswith('1 '):
                 line1split = re.findall(r'\d+\.\d+|\d+', line)  # Find all numeric characters and decimal points
             elif line.startswith('2 '):
@@ -84,33 +84,32 @@ def get_tle(norad_cat_id, date):
 # Load spice kernels
 spice.load_standard_kernels()
 
-# Useful variables
-#C3_norad_cat_id = 32789
-#C3_launchdate = 2008-04-28
-#N3XT_norad_cat_id = 39428
-#N3XT_launchdate = 2013-11-21
-#PQ_norad_cat_id = 51074
-#PQ_launchdate = 2022-01-13
+# Useful datasets: [name, norad_cat_id, mass, reference area, drag coefficient, radiation pressure coefficient, launch date]
+C3_data =   ["Delfi-C3"  , 32789, 2.2, 0.0746, 2.2, 2.2, "2008-04-28"]
+N3XT_data = ["Delfi-N3XT", 39428, 3.0, 0.0746, 2.2, 2.2, "2013-11-21"]
+PQ_data =   ["Delfi-PQ",   51074, 0.6, "area", 2.2, 2.2, "2022-01-13"]
 
 ##### SETUP VARIABLES #####
-satellite = "Delfi-C3"                              # Satellite name
-satellite_norad_cat_id = 32789                      # NORAD catelog ID for TLE
+dataset = C3_data                                   # For automatic data input
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
 propagation_duration = 900                          # How long to propagate for [days]
+fixed_step_size = 100.0                             # Step size for integrator
 
-satellite_mass = 2.2                                # Mass of satellite [kg]
-reference_area = 0.0746                             # Projection area of a 3U CubeSat [m²]
-drag_coefficient = 2.2                              # Drag coefficient [-]
-reference_area_radiation = 0.0746                   # Projection area of a 3U CubeSat [m²]
-radiation_pressure_coefficient = 2.2                # Radiation pressure coefficient [-]
-
-fixed_step_size = 30.0                             # Step size for integrator
+# Set manually if needed, otherwise change dataset
+satellite = dataset[0]                              # Satellite name
+satellite_norad_cat_id = dataset[1]                 # NORAD catelog ID for TLE
+satellite_mass = dataset[2]                         # Mass of satellite [kg]
+reference_area = dataset[3]                         # Projection area of a 3U CubeSat [m²]
+drag_coefficient = dataset[4]                       # Drag coefficient [-]
+reference_area_radiation = dataset[3]               # Projection area of a 3U CubeSat [m²]
+radiation_pressure_coefficient = dataset[5]         # Radiation pressure coefficient [-]
 #####^ SETUP VARIABLES ^#####
 
 # Get TLE in two lines
 line1, line2, line1split, line2split = get_tle(satellite_norad_cat_id, tle_date)
 line1 = line1.replace("\r","")
 line2 = line2.replace("\r","")
+#print(line1, "\n", line2, "\n", line1split, "\n", line2split)
 
 # Get starting date and end dates for propagation
 Epoch_Year = line1split[3][:2]
@@ -122,7 +121,7 @@ else:
 start_of_year = datetime(epoch_year, 1, 1)  # January 1 of the epoch year
 epoch_day = float(Epoch_Day)  # Convert to float to handle fractional days
 date1 = start_of_year + timedelta(days=epoch_day - 1) # Subtract 1 because the epoch day is 1-indexed, but timedelta days are 0-indexed
-date2 = date1 + timedelta(days=propagation_duration - 1)
+date2 = date1 + timedelta(days=propagation_duration)
 
 print(f"Propagation starting date: {date1}")
 
@@ -207,6 +206,7 @@ acceleration_models = propagation_setup.create_acceleration_models(
 tle = environment.Tle(line1, line2)
 ephemeris = environment.TleEphemeris( "Earth", "J2000", tle, False )
 initial_state = ephemeris.cartesian_state( simulation_start_epoch )
+#print(element_conversion.cartesian_to_keplerian(initial_state, bodies.get("Earth").gravitational_parameter))
 
 # Define list of dependent variables to save
 dependent_variables_to_save = [
@@ -219,7 +219,8 @@ termination_altitude = propagation_setup.propagator.dependent_variable_terminati
 hybrid_termination_condition = propagation_setup.propagator.hybrid_termination([termination_time, termination_altitude], True)
 
 # Create numerical integrator settings
-integrator_settings = propagation_setup.integrator.runge_kutta_4(fixed_step_size)
+#integrator_settings = propagation_setup.integrator.runge_kutta_4(fixed_step_size)
+integrator_settings = propagation_setup.integrator.runge_kutta_fixed_step(time_step=fixed_step_size, coefficient_set=propagation_setup.integrator.rkf_78)
 #integrator_settings = propagation_setup.integrator.bulirsch_stoer_variable_step(initial_time_step=fixed_step_size,extrapolation_sequence = propagation_setup.integrator.deufelhard_sequence, maximum_number_of_steps=7, 
 #                                                                                step_size_control_settings =propagation_setup.integrator.step_size_control_elementwise_scalar_tolerance(1.0E-10, 1.0E-10, minimum_factor_increase=0.05),
 #                                                                                step_size_validation_settings =propagation_setup.integrator.step_size_validation(0.1, 10000.0),
@@ -250,7 +251,9 @@ dep_vars_array = result2array(dep_vars)
 
 # Plot altitude as function of time
 time = (dep_vars_array[:,0] - datetime_to_tudat(date1).epoch()) / (3600 * 24) #In days
-print(f"Final remaining lifetime estimate: {time[-1]} days.")
+EOL_estimate = time[-1]
+EOL_date = datetime_to_python(date_time_from_epoch(EOL_estimate * (3600 * 24) + datetime_to_tudat(date1).epoch())).date()
+print(f"Final remaining lifetime estimate: {EOL_estimate} days. This is {EOL_date}")
 altitude = dep_vars_array[:, 1] / 1000
 plt.figure(figsize=(9, 5))
 plt.title(f"Altitude of {satellite} over the course of propagation. step size = {fixed_step_size}")
@@ -260,4 +263,4 @@ plt.ylabel('Altitude [km]')
 plt.xlim([min(time), max(time)])
 plt.grid()
 plt.tight_layout()
-plt.savefig(f"Plots_RK4_prediction/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
+plt.savefig(f"Plots_RK78_prediction/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
