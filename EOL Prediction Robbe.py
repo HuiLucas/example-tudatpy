@@ -84,11 +84,13 @@ def get_tle(norad_cat_id, date):
 # Load spice kernels
 spice.load_standard_kernels()
 
+
 # Useful datasets: [name, norad_cat_id, mass, reference area, drag coefficient, radiation pressure coefficient, launch date]
 C3_data =   ["Delfi-C3"  , 32789, 2.2, 0.0746, 2.2, 2.2, "2008-04-28"]
 N3XT_data = ["Delfi-N3XT", 39428, 3.0, 0.0746, 2.2, 2.2, "2013-11-21"]
 PQ_data =   ["Delfi-PQ",   51074, 0.6, "area", 2.2, 2.2, "2022-01-13"]
 
+###########################
 ##### SETUP VARIABLES #####
 dataset = C3_data                                   # For automatic data input
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
@@ -104,6 +106,7 @@ drag_coefficient = dataset[4]                       # Drag coefficient [-]
 reference_area_radiation = dataset[3]               # Projection area of a 3U CubeSat [m²]
 radiation_pressure_coefficient = dataset[5]         # Radiation pressure coefficient [-]
 #####^ SETUP VARIABLES ^#####
+#############################
 
 # Get TLE in two lines
 line1, line2, line1split, line2split = get_tle(satellite_norad_cat_id, tle_date)
