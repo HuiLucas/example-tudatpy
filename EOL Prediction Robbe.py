@@ -88,9 +88,9 @@ spice.load_standard_kernels()
 
 
 # Useful datasets: [name, norad_cat_id, mass, reference area, drag coefficient, radiation pressure coefficient, launch date]
-C3_data =   ["Delfi-C3",   32789, 2.2, 0.080, 2.2, 1.3, "2008-04-28"]
-N3XT_data = ["Delfi-N3XT", 39428, 2.8, 0.087, 2.2, 1.3, "2013-11-21"]
-PQ_data =   ["Delfi-PQ",   51074, 0.6, 0.011, 2.2, 1.3, "2022-01-13"]
+C3_data =   ["Delfi-C3",   32789, 2.2, 0.080, 1.7, 1.1,  "2008-04-28"]
+N3XT_data = ["Delfi-N3XT", 39428, 2.8, 0.087, 2.2, 1.3,  "2013-11-21"]
+PQ_data =   ["Delfi-PQ",   51074, 0.6, 0.011, 2.2, 1.3,  "2022-01-13"]
 
 ###########################################################################################
 ##### SETUP VARIABLES #####################################################################
@@ -146,6 +146,9 @@ body_settings = environment_setup.get_default_body_settings(
     bodies_to_create,
     global_frame_origin,
     global_frame_orientation)
+
+body_settings.get("Earth").atmosphere_settings = environment_setup.atmosphere.nrlmsise00()
+atmomodel = "NRLMSISE-00"
 
 # Create system of selected celestial bodies
 bodies = environment_setup.create_system_of_bodies(body_settings)
@@ -273,30 +276,31 @@ plt.savefig(f"CURRENT_PREDICTIONS/{satellite} altitude - from {date1.date()} - {
 
 # Create text file with all inputs and outputs
 ff = open(f"CURRENT_PREDICTIONS\{satellite} EOL Prediction", "w")
-ff.write(f"End-of-Life Prediction for {satellite}")
-ff.write(f"### File creation date: {datetime.now()}")
-ff.write(f"### Associated graph: {satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date})")
+ff.write(f"============== End-of-Life Prediction for {satellite} ==============\n")
+ff.write(f"### File creation date: {datetime.now()} \n")
+ff.write(f"### Associated graph: {satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date}) \n")
 ff.write("\n")
-ff.write("============================ INPUTS ============================")
-ff.write(f"Satellite name:                    {satellite}")
-ff.write(f"NORAD Catalog ID:                  {satellite_norad_cat_id}")
-ff.write(f"Propagation starting date:         {date1.date()}")
-ff.write(f"Satellite mass:                    {satellite_mass} [kg]")
-ff.write(f"Aerodynamic reference area:        {reference_area} [m²]")
-ff.write(f"Drag coefficient:                  {drag_coefficient}")
-ff.write(f"Radiation Pressure reference area: {reference_area_radiation} [m²]")
-ff.write(f"Radiation pressure coefficient:    {radiation_pressure_coefficient}")
+ff.write("============================ INPUTS ============================ \n")
+ff.write(f"Satellite name:                    {satellite} \n")
+ff.write(f"NORAD Catalog ID:                  {satellite_norad_cat_id} \n")
+ff.write(f"Propagation starting date:         {date1.date()} \n")
+ff.write(f"Satellite mass:                    {satellite_mass} [kg] \n")
+ff.write(f"Aerodynamic reference area:        {reference_area} [m^2] \n")
+ff.write(f"Drag coefficient:                  {drag_coefficient} \n")
+ff.write(f"Radiation Pressure reference area: {reference_area_radiation} [m^2] \n")
+ff.write(f"Radiation pressure coefficient:    {radiation_pressure_coefficient} \n")
 ff.write("\n")
-ff.write(f"TLE: {line1}")
-ff.write(f"     {line2}")
+ff.write(f"TLE: {line1} \n")
+ff.write(f"     {line2} \n")
 ff.write("\n")
-ff.write("===================== INTEGRATOR SETTINGS =====================")
-ff.write(f"Integrator used:     {integrator_used}")
-ff.write(f"(Initial) time step: {fixed_step_size} [s]")
+ff.write("=========================== SETTINGS =========================== \n")
+ff.write(f"Integrator used:     {integrator_used} \n")
+ff.write(f"(Initial) time step: {fixed_step_size} [s] \n")
+ff.write(f"Atmospheric model used: {atmomodel}")
 ff.write("\n")
-ff.write("=========================== OUTPUTS ===========================")
-ff.write(f"Remaining lifetime estimate: {EOL_estimate} [days]")
-ff.write(f"                             {EOL_estimate/365} [years]")
+ff.write("=========================== OUTPUTS =========================== \n")
+ff.write(f"Remaining lifetime estimate: {EOL_estimate} [days] \n")
+ff.write(f"                             {EOL_estimate/365} [years] \n")
 ff.write(f"Estimated re-entry:          {EOL_date}")
 
 # Play sound to notify of code being finished running
