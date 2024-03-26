@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt
 
+import winsound
+
 # Load tudatpy modules
 from tudatpy.interface import spice
 from tudatpy import numerical_simulation
@@ -92,18 +94,18 @@ PQ_data =   ["Delfi-PQ",   51074, 0.6, 0.011, 2.2, 1.3, "2022-01-13"]
 
 ###########################################################################################
 ##### SETUP VARIABLES #####################################################################
-dataset = PQ_data                                   # For automatic data input
+dataset = C3_data                                   # For automatic data input
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
-propagation_duration = 700                          # How long to propagate for [days]
+propagation_duration = 6000                         # How long to propagate for at most [days]
 fixed_step_size = 100.0                             # Step size for integrator
 
 # Set manually if needed, otherwise change dataset
 satellite = dataset[0]                              # Satellite name
 satellite_norad_cat_id = dataset[1]                 # NORAD catelog ID for TLE
 satellite_mass = dataset[2]                         # Mass of satellite [kg]
-reference_area = dataset[3]                         # Projection area of a 3U CubeSat [m²]
+reference_area = dataset[3]                         # Reference area for aerodynamics [m²]
 drag_coefficient = dataset[4]                       # Drag coefficient [-]
-reference_area_radiation = dataset[3]               # Projection area of a 3U CubeSat [m²]
+reference_area_radiation = dataset[3]               # Reference area for radiation pressure [m²]
 radiation_pressure_coefficient = dataset[5]         # Radiation pressure coefficient [-]
 #####^ SETUP VARIABLES ^###################################################################
 ###########################################################################################
@@ -228,6 +230,7 @@ integrator_settings = propagation_setup.integrator.runge_kutta_fixed_step(time_s
 #                                                                                step_size_control_settings =propagation_setup.integrator.step_size_control_elementwise_scalar_tolerance(1.0E-10, 1.0E-10, minimum_factor_increase=0.05),
 #                                                                                step_size_validation_settings =propagation_setup.integrator.step_size_validation(0.1, 10000.0),
 #                                                                                assess_termination_on_minor_steps = False)
+integrator_used = "Runge-Kutta 78, fixed time step" # For text file
 
 # Create propagation settings
 propagator_settings = propagation_setup.propagator.translational(
@@ -252,7 +255,7 @@ states_array = result2array(states)
 dep_vars = dynamics_simulator.dependent_variable_history
 dep_vars_array = result2array(dep_vars)
 
-# Plot altitude as function of time
+# Plot altitude as function of time and save it
 time = (dep_vars_array[:,0] - datetime_to_tudat(date1).epoch()) / (3600 * 24) #In days
 EOL_estimate = time[-1]
 EOL_date = datetime_to_python(date_time_from_epoch(EOL_estimate * (3600 * 24) + datetime_to_tudat(date1).epoch())).date()
@@ -266,4 +269,35 @@ plt.ylabel('Altitude [km]')
 plt.xlim([min(time), max(time)])
 plt.grid()
 plt.tight_layout()
-plt.savefig(f"Plots_RK78_prediction/{satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date}).png")
+plt.savefig(f"CURRENT_PREDICTIONS/{satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date}).png")
+
+# Create text file with all inputs and outputs
+ff = open(f"CURRENT_PREDICTIONS\{satellite} EOL Prediction", "w")
+ff.write(f"End-of-Life Prediction for {satellite}")
+ff.write(f"### File creation date: {datetime.now()}")
+ff.write(f"### Associated graph: {satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date})")
+ff.write("\n")
+ff.write("============================ INPUTS ============================")
+ff.write(f"Satellite name:                    {satellite}")
+ff.write(f"NORAD Catalog ID:                  {satellite_norad_cat_id}")
+ff.write(f"Propagation starting date:         {date1.date()}")
+ff.write(f"Satellite mass:                    {satellite_mass} [kg]")
+ff.write(f"Aerodynamic reference area:        {reference_area} [m²]")
+ff.write(f"Drag coefficient:                  {drag_coefficient}")
+ff.write(f"Radiation Pressure reference area: {reference_area_radiation} [m²]")
+ff.write(f"Radiation pressure coefficient:    {radiation_pressure_coefficient}")
+ff.write("\n")
+ff.write(f"TLE: {line1}")
+ff.write(f"     {line2}")
+ff.write("\n")
+ff.write("===================== INTEGRATOR SETTINGS =====================")
+ff.write(f"Integrator used:     {integrator_used}")
+ff.write(f"(Initial) time step: {fixed_step_size} [s]")
+ff.write("\n")
+ff.write("=========================== OUTPUTS ===========================")
+ff.write(f"Remaining lifetime estimate: {EOL_estimate} [days]")
+ff.write(f"                             {EOL_estimate/365} [years]")
+ff.write(f"Estimated re-entry:          {EOL_date}")
+
+# Play sound to notify of code being finished running
+winsound.Beep(440, 1000)
