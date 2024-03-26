@@ -86,15 +86,15 @@ spice.load_standard_kernels()
 
 
 # Useful datasets: [name, norad_cat_id, mass, reference area, drag coefficient, radiation pressure coefficient, launch date]
-C3_data =   ["Delfi-C3"  , 32789, 2.2, 0.0746, 2.2, 2.2, "2008-04-28"]
-N3XT_data = ["Delfi-N3XT", 39428, 3.0, 0.0746, 2.2, 2.2, "2013-11-21"]
-PQ_data =   ["Delfi-PQ",   51074, 0.6, "area", 2.2, 2.2, "2022-01-13"]
+C3_data =   ["Delfi-C3",   32789, 2.2, 0.080, 2.2, 1.3, "2008-04-28"]
+N3XT_data = ["Delfi-N3XT", 39428, 2.8, 0.087, 2.2, 1.3, "2013-11-21"]
+PQ_data =   ["Delfi-PQ",   51074, 0.6, 0.011, 2.2, 1.3, "2022-01-13"]
 
 ###########################################################################################
 ##### SETUP VARIABLES #####################################################################
-dataset = C3_data                                   # For automatic data input
+dataset = PQ_data                                   # For automatic data input
 tle_date = "2022-09-06--2022-09-07"                 # Date for TLE
-propagation_duration = 900                          # How long to propagate for [days]
+propagation_duration = 700                          # How long to propagate for [days]
 fixed_step_size = 100.0                             # Step size for integrator
 
 # Set manually if needed, otherwise change dataset
@@ -256,14 +256,14 @@ dep_vars_array = result2array(dep_vars)
 time = (dep_vars_array[:,0] - datetime_to_tudat(date1).epoch()) / (3600 * 24) #In days
 EOL_estimate = time[-1]
 EOL_date = datetime_to_python(date_time_from_epoch(EOL_estimate * (3600 * 24) + datetime_to_tudat(date1).epoch())).date()
-print(f"Final remaining lifetime estimate: {EOL_estimate} days. This is {EOL_date}")
+print(f"Final remaining lifetime estimate: {EOL_estimate} days. This estimates re-entry on {EOL_date}")
 altitude = dep_vars_array[:, 1] / 1000
 plt.figure(figsize=(9, 5))
-plt.title(f"Altitude of {satellite} over the course of propagation. step size = {fixed_step_size}")
+plt.title(f"{satellite} altitude, starting from {date1.date()}. step size = {fixed_step_size}")
 plt.plot(time, altitude)
 plt.xlabel('Time [days]')
 plt.ylabel('Altitude [km]')
 plt.xlim([min(time), max(time)])
 plt.grid()
 plt.tight_layout()
-plt.savefig(f"Plots_RK78_prediction/{satellite} altitude - {propagation_duration} days - {int(fixed_step_size)} stepsize")
+plt.savefig(f"Plots_RK78_prediction/{satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date}).png")
