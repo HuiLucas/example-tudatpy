@@ -262,6 +262,7 @@ dep_vars_array = result2array(dep_vars)
 time = (dep_vars_array[:,0] - datetime_to_tudat(date1).epoch()) / (3600 * 24) #In days
 EOL_estimate = time[-1]
 EOL_date = datetime_to_python(date_time_from_epoch(EOL_estimate * (3600 * 24) + datetime_to_tudat(date1).epoch())).date()
+now = datetime.now()
 print(f"Final remaining lifetime estimate: {EOL_estimate} days. This estimates re-entry on {EOL_date}")
 altitude = dep_vars_array[:, 1] / 1000
 plt.figure(figsize=(9, 5))
@@ -272,13 +273,13 @@ plt.ylabel('Altitude [km]')
 plt.xlim([min(time), max(time)])
 plt.grid()
 plt.tight_layout()
-plt.savefig(f"CURRENT_PREDICTIONS/{satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date}).png")
+plt.savefig(f"CURRENT_PREDICTIONS/Altitude over the course of propagation of {satellite} - {now.day}-{now.month}-{now.year} {now.hour}h{now.minute}.png")
 
 # Create text file with all inputs and outputs
-ff = open(f"CURRENT_PREDICTIONS\{satellite} EOL Prediction", "w")
+ff = open(f"CURRENT_PREDICTIONS\{satellite} EOL Prediction - {now.day}-{now.month}-{now.year} {now.hour}h{now.minute}", "w")
 ff.write(f"============== End-of-Life Prediction for {satellite} ==============\n")
-ff.write(f"### File creation date: {datetime.now()} \n")
-ff.write(f"### Associated graph: {satellite} altitude - from {date1.date()} - {propagation_duration} days - {int(fixed_step_size)} stepsize - EOL~{int(EOL_estimate)} days (on {EOL_date}) \n")
+ff.write(f"### File creation on {datetime.now()} \n")
+ff.write(f"### Associated graph: Altitude over the course of propagation of {satellite} - {now.day}-{now.month}-{now.year} {now.hour}h{now.minute} \n")
 ff.write("\n")
 ff.write("============================ INPUTS ============================ \n")
 ff.write(f"Satellite name:                    {satellite} \n")
