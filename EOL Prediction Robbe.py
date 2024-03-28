@@ -1,10 +1,7 @@
 ##### End-of-Life Prediction #####
 # Load standard modules
 import numpy as np
-
-import matplotlib
 from matplotlib import pyplot as plt
-
 import winsound
 
 # Load tudatpy modules
@@ -22,7 +19,6 @@ import requests
 import re
 from datetime import datetime, timedelta
 import math
-import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import cartopy.crs as ccrs
