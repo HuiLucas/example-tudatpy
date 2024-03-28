@@ -1,17 +1,37 @@
+# Load standard modules
+import numpy as np
+from matplotlib import pyplot as plt
+import winsound
+
+# Load tudatpy modules
+from tudatpy.interface import spice
+from tudatpy import numerical_simulation
+from tudatpy.numerical_simulation import environment
+from tudatpy.numerical_simulation import environment_setup, propagation_setup
+from tudatpy.astro import element_conversion
+from tudatpy import constants
+from tudatpy.util import result2array
+from tudatpy.astro.time_conversion import DateTime, datetime_to_tudat, date_time_from_epoch, datetime_to_python
+
+# Load modules for getting TLE
+import requests
+import re
+from datetime import datetime, timedelta
+import math
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import matplotlib.pyplot as plt
+
+# Imports for fancy parallelization
+import multiprocessing
+
+
 def get_tle(norad_cat_id, date):
     # INPUTS: norad_cat_id (int) = ID of the satellite, date (str) = Date to get TLE at in form YEAR-MONTH-DAY--YEAR-MONTH-DAY
     # EXAMPLE: get_tle(32789, 2022-09-06)
     # OUTPUT: TLE in lines one and two for entering into tudatpy TLE
-    from mpl_toolkits.mplot3d import Axes3D
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    import cartopy.crs as ccrs
-    import cartopy.feature as cfeature
-    import matplotlib.pyplot as plt
-    import requests
-    import re
-    from datetime import datetime, timedelta
-    import math
-    import numpy as np
 
     # Define the login data
     login_data = {
@@ -63,29 +83,8 @@ def get_tle(norad_cat_id, date):
         return line1, line2, line1split, line2split
 
 def EOL(dataset, tle_date, propagation_duration, fixed_step_size):
-    # Imports
-    import numpy as np
-    import matplotlib
-    from matplotlib import pyplot as plt
-    import winsound
-    from tudatpy.interface import spice
-    from tudatpy import numerical_simulation
-    from tudatpy.numerical_simulation import environment
-    from tudatpy.numerical_simulation import environment_setup, propagation_setup
-    from tudatpy.astro import element_conversion
-    from tudatpy import constants
-    from tudatpy.util import result2array
-    from tudatpy.astro.time_conversion import DateTime, datetime_to_tudat, date_time_from_epoch, datetime_to_python
-    from datetime import datetime, timedelta
-
     # Load spice kernels
     spice.load_standard_kernels()
-
-
-    # Useful datasets: [name, norad_cat_id, mass, reference area, drag coefficient, radiation pressure coefficient, launch date]
-    C3_data =   ["Delfi-C3",   32789, 2.2, 0.080, 1.7, 1.1,  "2008-04-28"]
-    N3XT_data = ["Delfi-N3XT", 39428, 2.8, 0.087, 2.2, 1.3,  "2013-11-21"]
-    PQ_data =   ["Delfi-PQ",   51074, 0.6, 0.011, 2.2, 1.3,  "2022-01-13"]
 
     ###########################################################################################
     ##### SETUP VARIABLES #####################################################################
@@ -261,3 +260,15 @@ def EOL(dataset, tle_date, propagation_duration, fixed_step_size):
     altitude = dep_vars_array[:, 1] / 1000
 
     return time, altitude, EOL_estimate, EOL_date
+
+
+##### EOL RANGE FOR C_D RANGE #####
+CD_lower = 1.2
+CD_upper = 1.8
+CD_step = 0.1
+CD_range = range(CD_lower, CD_upper+CD_step, CD_step)
+
+# Useful datasets: [name, norad_cat_id, mass, reference area, drag coefficient, radiation pressure coefficient, launch date]
+C3_data =   ["Delfi-C3",   32789, 2.2, 0.080, 1.7, 1.1,  "2008-04-28"]
+N3XT_data = ["Delfi-N3XT", 39428, 2.8, 0.087, 2.2, 1.3,  "2013-11-21"]
+PQ_data =   ["Delfi-PQ",   51074, 0.6, 0.011, 2.2, 1.3,  "2022-01-13"]
